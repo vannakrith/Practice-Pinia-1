@@ -7,7 +7,6 @@ export const useTaskStore = defineStore('taskStore', () => {
 
   //State
 
-  const todoInput = ref<string>('');
   const tasks = ref<ITask[]>([
     // {
     //   id: 1,
@@ -24,7 +23,7 @@ export const useTaskStore = defineStore('taskStore', () => {
   })
 
   const countCompletedTasks = computed(() => 
-    tasks.value.reduce((accumulator, currentValue) => currentValue.isComplete ? accumulator + 1 : accumulator,0)
+    tasks.value.reduce((accumulator:number, currentValue:ITask) => currentValue.isComplete ? accumulator + 1 : accumulator,0)
   )
 
   const completedTasks = computed(() => {
@@ -46,13 +45,12 @@ export const useTaskStore = defineStore('taskStore', () => {
     }
   }
 
-  const addTask = async () =>  {
+  const addTask = async (taskText: string) =>  {
     const newTask : ITask = {
       id: Math.floor(Math.random() * 10000000),
-      text: todoInput.value,
+      text: taskText,
       isComplete: false
     }
-
     try {
       const res = await fetch ('http://localhost:3000/tasks/', {
         method: 'POST',
@@ -61,9 +59,8 @@ export const useTaskStore = defineStore('taskStore', () => {
       })
 
       if(!res.ok) throw new Error('cannot add task, fail api call')
-      if(todoInput.value.trim() !== '') {
+      if(taskText.trim() !== '') {
           tasks.value.push(newTask)
-          todoInput.value = '';
           console.log('task added:', tasks.value);
       }
       
@@ -93,7 +90,6 @@ export const useTaskStore = defineStore('taskStore', () => {
   //Return values
   return { 
     //State
-    todoInput,
     tasks,
     
     //Getters
