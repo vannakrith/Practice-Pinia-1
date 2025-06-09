@@ -74,8 +74,6 @@ const {deleteTask} = taskStore;
 const {tasks, countAllTasks, completedTasks, countCompletedTasks} = storeToRefs(taskStore);
 //Store refs from store to reactive
 
-const {getAllTasks} = taskStore
-
 const filterTask = ref<string>('All');
 const showAllTasks = () => {
   filterTask.value = 'All'
@@ -85,7 +83,7 @@ const showOnlyCompletedTasks = () => {
 }
 
 onMounted(() => {
-    getAllTasks();
+    // getAllTasks();
     console.log('from child, onMounted');
 })
 

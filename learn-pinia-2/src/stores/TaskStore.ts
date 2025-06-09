@@ -1,22 +1,28 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
 import type { ITask } from '@/interface/ITask'
 
+
+const LOCAL_STORAGE_KEY = 'tasks';
 
 export const useTaskStore = defineStore('taskStore', () => {
 
   //State
 
-  const tasks = ref<ITask[]>([
-    // {
-    //   id: 1,
-    //   text: 'default value in tasks',
-    //   isComplete: false
-    // }
-  ])
+  const tasks = ref<ITask[]>(
+      // Load tasks from localStorage or start with empty array
+   JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]')
+  )
   
 
   //Getters
+
+  //Save to localStorage whenever tasks change
+
+  watch(tasks, (newTasks) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newTasks))
+  }, {deep: true}) //Detect changes inside the array and obj, like changes when add new item, delete item, changing obj property (Like toggle to complete task), whole arr replaced
+
   const countAllTasks = computed(() => {
     console.log('all tasks amount: ', tasks.value.length );
     return tasks.value.length
@@ -33,57 +39,22 @@ export const useTaskStore = defineStore('taskStore', () => {
    
 
   //Actions
-  
-  const getAllTasks = async () => {
-    try {
-      const res = await fetch('http://localhost:3000/tasks/')
-      const data = await res.json()
-      tasks.value = data
-      if(!res.ok) throw new Error('error cannot fetch api get all tasks')
-    } catch (error) {
-      console.error('fail fetch api get all tasks', error)
-    }
-  }
 
-  const addTask = async (taskText: string) =>  {
+
+  const addTask = (taskText: string) =>  {
     const newTask : ITask = {
       id: Math.floor(Math.random() * 10000000),
       text: taskText,
       isComplete: false
     }
-    try {
-      const res = await fetch ('http://localhost:3000/tasks/', {
-        method: 'POST',
-        body: JSON.stringify(newTask),
-        headers: {'Content-Type': 'application/json'}
-      })
-
-      if(!res.ok) throw new Error('cannot add task, fail api call')
       if(taskText.trim() !== '') {
           tasks.value.push(newTask)
           console.log('task added:', tasks.value);
-      }
-      
-    } catch (error) {
-      console.error('error add task', error)
-    }
-
+      } 
   }
 
-  const deleteTask = async (taskId: number) => {
-
-    try {
-      const res = await fetch(`http://localhost:3000/tasks/${taskId}`, {
-        method: 'DELETE'
-      })
-      if(!res.ok) throw new Error('fail api cannot delete')
+  const deleteTask = (taskId: number) => {
       tasks.value = tasks.value.filter(task => task.id !== taskId)
-      getAllTasks();
-      
-    } catch (error) {
-      console.error('fail cannot delete task', error)
-    }
-
   }
 
 
@@ -100,7 +71,5 @@ export const useTaskStore = defineStore('taskStore', () => {
     //Actions
     addTask,
     deleteTask,
-    getAllTasks,
-   
   }
 })
